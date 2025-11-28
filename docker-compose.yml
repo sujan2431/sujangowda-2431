@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  core_realtime:
+    build: ./services/core_realtime
+    environment:
+      VOSK_MODEL: /models/vosk-en
+      LT_JAR: /models/LanguageTool/languagetool.jar
+      T5_ONNX_DIR: /models/t5-small-onnx
+    volumes:
+      - ./models:/models:ro
+    ports:
+      - "8080:8080"
+  ui_gateway:
+    build: ./services/ui_gateway
+    working_dir: /app
+    volumes:
+      - ./services/ui_gateway:/app
+    ports:
+      - "3000:3000"
+    environment:
+      CORE_REALTIME_WS: ws://localhost:8080/asr/stream
+  auth:
+    build: ./services/auth
+    ports:
+      - "8081:8081"
+  logging:
+    build: ./services/logging
+    ports:
+      - "8082:8082"
+  model_manager:
+    build: ./services/model_manager
+    environment:
+      MODELS_ROOT: /models
+      CACHE_ROOT: /cache_models
+    volumes:
+      - ./models:/models
+      - model_cache:/cache_models
+    ports:
+      - "8083:8083"
+
+volumes:
+  model_cache:
